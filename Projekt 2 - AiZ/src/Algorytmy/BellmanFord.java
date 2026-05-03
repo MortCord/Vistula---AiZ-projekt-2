@@ -8,38 +8,57 @@ import java.util.Arrays;
 
 public class BellmanFord {
 
-    public static Rezultat start(Graf graf, int start){
+    public static Rezultat start(Graf graf, int start) {
 
-        int v = graf.getWierzcholki();
+        int n = graf.getV();
 
-        int[] odleglosc = new int[v];
-        int[] rodzic = new int[v];
+        int[] dist = new int[n];
+        int[] parent = new int[n];
 
-        Arrays.fill(odleglosc, Integer.MAX_VALUE);
-        Arrays.fill(rodzic, -1);
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        Arrays.fill(parent, -1);
 
-        odleglosc[start] = 0;
+        dist[start] = 0;
 
-        long czasStartu = System.nanoTime();
+        long t1 = System.nanoTime();
 
-        for(int i = 0; i < v - 1; i++){
-            for(int od = 0; od < v; od++){
-                for(Krawedz krawedz : graf.getListaSasiedztwa()[od]){
-                    int to = krawedz.getTo();
-                    int waga = krawedz.getWaga();
+        for (int i = 0; i < n - 1; i++) {
 
-                    if(odleglosc[od] != Integer.MAX_VALUE && odleglosc[od] + waga < odleglosc[to]){
-                        odleglosc[to] = odleglosc[od] + waga;
-                        rodzic[to] = od;
+            for (int u = 0; u < n; u++) {
+
+                for (Krawedz k : graf.getLista()[u]) {
+
+                    int v = k.getTo();
+                    int w = k.getWaga();
+
+                    if (dist[u] != Integer.MAX_VALUE &&
+                            dist[u] + w < dist[v]) {
+
+                        dist[v] = dist[u] + w;
+                        parent[v] = u;
                     }
                 }
             }
         }
 
-        long czasStopu = System.nanoTime();
+        // negative cycle check
+        for (int u = 0; u < n; u++) {
+            for (Krawedz k : graf.getLista()[u]) {
 
-        return new Rezultat(odleglosc, rodzic, czasStopu - czasStartu);
+                int v = k.getTo();
+                int w = k.getWaga();
 
+                if (dist[u] != Integer.MAX_VALUE &&
+                        dist[u] + w < dist[v]) {
+
+                    System.out.println("UWAGA: Ujemny cykl!");
+                }
+            }
+        }
+
+        long t2 = System.nanoTime();
+
+        return new Rezultat(dist, parent, t2 - t1);
     }
 
 }

@@ -2,31 +2,41 @@ package Data;
 
 import Grafy.Graf;
 
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 public class GenerowanieGrafu {
 
-    public static Graf generujGraf(int wierzcholki, int krawedzi){
+    public static Graf generuj(int v, int e, boolean skierowany) {
 
-        Graf graf = new Graf(wierzcholki);
-        Random random = new Random();
+        Graf graf = new Graf(v, skierowany);
 
-        int dodaneKrawedzi = 0;
+        Random rand = new Random();
 
-        while(dodaneKrawedzi < krawedzi){
-            int od = random.nextInt(wierzcholki);
-            int to = random.nextInt(wierzcholki);
+        Set<String> used = new HashSet<>();
 
-            if(od != to){
-                int waga = random.nextInt(20) + 1;
+        while (used.size() < e) {
 
-                graf.dodajKrawedz(od, to, waga);
-                dodaneKrawedzi++;
-            }
+            int from = rand.nextInt(v);
+            int to = rand.nextInt(v);
+
+            if (from == to)
+                continue;
+
+            String key = from + "-" + to;
+
+            if (used.contains(key))
+                continue;
+
+            used.add(key);
+
+            int waga = rand.nextInt(20) + 1;
+
+            graf.dodajKrawedz(from, to, waga);
         }
 
         return graf;
-
     }
 
 }

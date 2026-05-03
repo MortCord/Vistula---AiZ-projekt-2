@@ -2,25 +2,25 @@ package Data;
 
 public class Rezultat {
 
-    private int[] odleglosci;
-    private int[] rodzic;
+    private int[] dist;
+    private int[] parent;
     private long czas;
 
-    public Rezultat(int[] odleglosci, int[] rodzic, long czas){
-        this.odleglosci = odleglosci;
-        this.rodzic = rodzic;
+    public Rezultat(int[] dist, int[] parent, long czas) {
+        this.dist = dist;
+        this.parent = parent;
         this.czas = czas;
     }
 
-    public int[] getOdleglosci(){
-        return odleglosci;
+    public int[] getDist() {
+        return dist;
     }
 
-    public int[] getRodzic(){
-        return rodzic;
+    public int[] getParent() {
+        return parent;
     }
 
-    public long getCzas(){
+    public long getCzas() {
         return czas;
     }
 

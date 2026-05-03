@@ -2,16 +2,15 @@ package Algorytmy;
 
 public class Wezel implements Comparable<Wezel> {
 
-    int wierzcholek, odleglosc;
+    int v, dist;
 
-    public Wezel(int wierzcholek, int odleglosc){
-        this.wierzcholek = wierzcholek;
-        this.odleglosc = odleglosc;
+    Wezel(int v, int dist) {
+        this.v = v;
+        this.dist = dist;
     }
 
-    @Override
-    public int compareTo(Wezel inny){
-        return Integer.compare(this.odleglosc, inny.odleglosc);
+    public int compareTo(Wezel o) {
+        return Integer.compare(this.dist, o.dist);
     }
 
 }

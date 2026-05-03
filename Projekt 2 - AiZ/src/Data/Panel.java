@@ -16,226 +16,309 @@ import java.util.List;
 
 public class Panel extends JFrame {
 
-    private JComboBox<String> panelAlgrotymu;
-    private JTextField poleWierzcholkow;
-    private JTextField poleKrawedzi;
-    private JTextField poleStartu;
-    private JTable tablicaRezultatow;
+    private JComboBox<String> comboAlg;
+    private JTextField txtV;
+    private JTextField txtE;
+    private JTextField txtStart;
+
+    private JCheckBox chkSkierowany;
+
+    private JButton btnStart;
+    private JButton btnLoad;
+    private JButton btnTestV;
+    private JButton btnTestE;
+
+    private JTable table;
+
     private PanelGrafu panelGrafu;
     private Wykres wykres;
-    JButton btnWierzcholki = new JButton("Czas vs V");
-    JButton btnKrawedzie = new JButton("Czas vs E");
 
-    private int[] vSizes = {10, 50, 100, 200, 500};
-    private int[] eSizes = {20, 100, 200, 400, 800};
+    private Graf currentGraf;
 
-    public Panel(){
-        setTitle("Najkrótsze ścieżki w grafie");
-        setSize(1200, 700);
+    public Panel() {
+
+        setTitle("Najkrótsze ścieżki w grafie - FULL FIX");
+        setSize(1300, 750);
+        setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        stworzGornaPanel();
-        stworzCentralnaPanel();
+        initTop();
+        initCenter();
+        initEvents();
 
         setVisible(true);
-
     }
 
-    private void stworzGornaPanel(){
+    private void initTop() {
 
-        JPanel panel = new JPanel();
+        JPanel top = new JPanel();
 
-        panelAlgrotymu = new JComboBox<>(new String[]{"Dijkstra", "BellmanFord", "FloydWarshall", "Wszystkie algorytmy"});
+        comboAlg = new JComboBox<>(new String[]{
+                "Dijkstra",
+                "BellmanFord",
+                "FloydWarshall",
+                "Wszystkie"
+        });
 
-        poleWierzcholkow = new JTextField("10", 5);
-        poleKrawedzi = new JTextField("20", 5);
-        poleStartu = new JTextField("0", 5);
+        txtV = new JTextField("10",5);
+        txtE = new JTextField("20",5);
+        txtStart = new JTextField("0",5);
 
-        JButton startBtn = new JButton("Start");
+        chkSkierowany = new JCheckBox("Skierowany");
 
-        startBtn.addActionListener(e -> uruchomAlgorytm());
-        btnWierzcholki.addActionListener(e -> testWierzcholki());
-        btnKrawedzie.addActionListener(e -> testKrawedzie());
+        btnStart = new JButton("Start");
+        btnLoad = new JButton("Wczytaj plik");
+        btnTestV = new JButton("Test V");
+        btnTestE = new JButton("Test E");
 
-        panel.add(new JLabel("Algorytm:"));
-        panel.add(panelAlgrotymu);
+        top.add(new JLabel("Algorytm:"));
+        top.add(comboAlg);
 
-        panel.add(new JLabel("Wierzchołki:"));
-        panel.add(poleWierzcholkow);
+        top.add(new JLabel("V:"));
+        top.add(txtV);
 
-        panel.add(new JLabel("Krawędzie:"));
-        panel.add(poleKrawedzi);
+        top.add(new JLabel("E:"));
+        top.add(txtE);
 
-        panel.add(startBtn);
+        top.add(new JLabel("Start:"));
+        top.add(txtStart);
 
-        panel.add(btnWierzcholki);
-        panel.add(btnKrawedzie);
+        top.add(chkSkierowany);
 
-        add(panel, BorderLayout.NORTH);
+        top.add(btnStart);
+        top.add(btnLoad);
+        top.add(btnTestV);
+        top.add(btnTestE);
 
+        add(top, BorderLayout.NORTH);
     }
 
-    private void stworzCentralnaPanel(){
+    private void initCenter() {
 
         panelGrafu = new PanelGrafu();
-        tablicaRezultatow = new JTable();
+        table = new JTable();
         wykres = new Wykres();
 
-        JSplitPane prawyPodzial = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(tablicaRezultatow), wykres);
+        JSplitPane right =
+                new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                        new JScrollPane(table),
+                        wykres);
 
-        JSplitPane glownyPodzial = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelGrafu, prawyPodzial);
+        right.setDividerLocation(320);
 
-        add(glownyPodzial, BorderLayout.CENTER);
+        JSplitPane main =
+                new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                        panelGrafu,
+                        right);
 
+        main.setDividerLocation(650);
+
+        add(main, BorderLayout.CENTER);
     }
 
-    private void uruchomAlgorytm(){
+    private void initEvents() {
 
-        int wierzcholki = Integer.parseInt(poleWierzcholkow.getText());
-        int krawedzie = Integer.parseInt(poleKrawedzi.getText());
-        int start = Integer.parseInt(poleStartu.getText());
+        btnStart.addActionListener(e -> runMain());
 
-        Graf graf = GenerowanieGrafu.generujGraf(wierzcholki, krawedzie);
+        btnLoad.addActionListener(e -> loadFile());
 
-        Rezultat rezultat = null;
+        btnTestV.addActionListener(e -> testV());
 
-        String wybrany = (String) panelAlgrotymu.getSelectedItem();
+        btnTestE.addActionListener(e -> testE());
+    }
 
-        if(wybrany.equals("Dijkstra")){
-            rezultat = Dijkstra.start(graf, start);
+    private void runMain() {
 
-            Map<String, Long> map = new LinkedHashMap<>();
-            map.put("Dijkstra", rezultat.getCzas());
+        try {
+
+            int v = Integer.parseInt(txtV.getText());
+            int e = Integer.parseInt(txtE.getText());
+            int start = Integer.parseInt(txtStart.getText());
+
+            boolean skierowany = chkSkierowany.isSelected();
+
+            currentGraf = GenerowanieGrafu.generuj(v, e, skierowany);
+
+            panelGrafu.setGraf(currentGraf);
+
+            runAlgorithm(currentGraf, start);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Błąd danych!");
+        }
+    }
+
+    private void runAlgorithm(Graf graf, int start) {
+
+        String alg = (String) comboAlg.getSelectedItem();
+
+        if (alg.equals("Dijkstra")) {
+
+            Rezultat r = Dijkstra.start(graf, start);
+
+            showTable(r);
+
+            Map<String,Long> map = new LinkedHashMap<>();
+            map.put("Dijkstra", r.getCzas());
 
             wykres.setData(map);
-            wykres.revalidate();
-            wykres.repaint();
 
-            panelGrafu.setGraf(graf);
+        } else if (alg.equals("BellmanFord")) {
 
-            pokazRezultaty(rezultat);
-        }else if(wybrany.equals("BellmanFord")){
-            rezultat = BellmanFord.start(graf, start);
+            Rezultat r = BellmanFord.start(graf, start);
 
-            Map<String, Long> map = new LinkedHashMap<>();
-            map.put("BellmanFord", rezultat.getCzas());
+            showTable(r);
+
+            Map<String,Long> map = new LinkedHashMap<>();
+            map.put("BellmanFord", r.getCzas());
 
             wykres.setData(map);
-            wykres.revalidate();
-            wykres.repaint();
 
-            panelGrafu.setGraf(graf);
+        } else if (alg.equals("FloydWarshall")) {
 
-            pokazRezultaty(rezultat);
-        }else if(wybrany.equals("FloydWarshall")){
-            rezultat = FloydWarshall.start(graf, start);
+            Rezultat r = FloydWarshall.start(graf, start);
 
-            Map<String, Long> map = new LinkedHashMap<>();
-            map.put("FloydWarshall", rezultat.getCzas());
+            showTable(r);
+
+            Map<String,Long> map = new LinkedHashMap<>();
+            map.put("FloydWarshall", r.getCzas());
 
             wykres.setData(map);
-            wykres.revalidate();
-            wykres.repaint();
 
-            panelGrafu.setGraf(graf);
+        } else {
 
-            pokazRezultaty(rezultat);
-        }else if(wybrany.equals("Wszystkie algorytmy")){
-            uruchomWszystkieAlgorytmy(graf, start);
-            panelGrafu.setGraf(graf);
-            return;
+            Rezultat d = Dijkstra.start(graf, start);
+            Rezultat b = BellmanFord.start(graf, start);
+            Rezultat f = FloydWarshall.start(graf, start);
+
+            showTable(d);
+
+            Map<String,Long> map = new LinkedHashMap<>();
+            map.put("Dijkstra", d.getCzas());
+            map.put("Bellman", b.getCzas());
+            map.put("Floyd", f.getCzas());
+
+            wykres.setData(map);
         }
-
     }
 
-    private void pokazRezultaty(Rezultat rezultat){
+    private void showTable(Rezultat r) {
 
-        String[] kolumny = {"Wierzchołek", "Odległość"};
+        DefaultTableModel model =
+                new DefaultTableModel(
+                        new String[]{"Wierzchołek","Odległość"},
+                        0
+                );
 
-        List<Integer> path = getSciezke(rezultat.getRodzic(), 5);
+        for(int i=0;i<r.getDist().length;i++) {
 
-        System.out.println("Najkrótsza ścieżka: " + path);
-
-        List<Integer> sciezka = getSciezke(rezultat.getRodzic(), 5);
-
-        panelGrafu.setSciezka(sciezka);
-
-        DefaultTableModel model = new DefaultTableModel(kolumny, 0);
-
-        for(int i = 0; i < rezultat.getOdleglosci().length; i++){
-
-            model.addRow(new Object[]{i, rezultat.getOdleglosci()[i]});
-
+            model.addRow(new Object[]{
+                    i,
+                    r.getDist()[i] == Integer.MAX_VALUE ? "INF" : r.getDist()[i]
+            });
         }
 
-        tablicaRezultatow.setModel(model);
+        table.setModel(model);
 
-        JOptionPane.showMessageDialog(this, "Czas działania: " + rezultat.getCzas() + " ns");
+        int end = r.getDist().length - 1;
 
+        java.util.List<Integer> path =
+                buildPath(r.getParent(), end);
+
+        panelGrafu.setSciezka(path);
+
+        JOptionPane.showMessageDialog(this,
+                "Najkrótsza ścieżka do " + end + ":\n" +
+                        path.toString() +
+                        "\nKoszt = " + r.getDist()[end]);
     }
 
-    private void uruchomWszystkieAlgorytmy(Graf graf, int start){
+    private void loadFile() {
 
-        Rezultat dijkstra = Dijkstra.start(graf, start);
-        Rezultat bellman = BellmanFord.start(graf, start);
-        Rezultat floyd = FloydWarshall.start(graf, start);
+        JFileChooser chooser = new JFileChooser();
 
-        Map<String, Long> map = new LinkedHashMap<>();
+        int x = chooser.showOpenDialog(this);
 
-        map.put("Dijkstra", dijkstra.getCzas());
-        map.put("Bellman", bellman.getCzas());
-        map.put("Floyd", floyd.getCzas());
+        if(x == JFileChooser.APPROVE_OPTION) {
 
-        wykres.setData(map);
+            try {
 
-        pokazRezultaty(dijkstra);
+                currentGraf =
+                        Plik.wczytaj(
+                                chooser.getSelectedFile().getAbsolutePath(),
+                                chkSkierowany.isSelected()
+                        );
 
+                panelGrafu.setGraf(currentGraf);
+
+                runAlgorithm(currentGraf,
+                        Integer.parseInt(txtStart.getText()));
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,"Błąd pliku!");
+            }
+        }
     }
 
-    public static List<Integer> getSciezke(int[] rodzic, int koniec) {
+    private void testV() {
 
-        List<Integer> sciezka = new ArrayList<>();
+        try {
 
-        for (int v = koniec; v != -1; v = rodzic[v]) {
-            sciezka.add(v);
+            int[] arr = {10,50,100,200,500};
+
+            Map<String,Long> map = new LinkedHashMap<>();
+
+            for(int x : arr) {
+
+                Graf g = GenerowanieGrafu.generuj(x,x*2,false);
+
+                Rezultat r = Dijkstra.start(g,0);
+
+                map.put("V=" + x, r.getCzas());
+            }
+
+            wykres.setData(map);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,"Błąd testu");
+        }
+    }
+
+    private void testE() {
+
+        try {
+
+            int[] arr = {20,50,100,300,500};
+
+            Map<String,Long> map = new LinkedHashMap<>();
+
+            for(int x : arr) {
+
+                Graf g = GenerowanieGrafu.generuj(100,x,false);
+
+                Rezultat r = Dijkstra.start(g,0);
+
+                map.put("E=" + x, r.getCzas());
+            }
+
+            wykres.setData(map);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,"Błąd testu");
+        }
+    }
+
+    private java.util.List<Integer> buildPath(int[] parent, int end){
+
+        java.util.List<Integer> path = new java.util.ArrayList<>();
+
+        while(end != -1){
+            path.add(0,end);
+            end = parent[end];
         }
 
-        Collections.reverse(sciezka);
-
-        return sciezka;
-    }
-
-    private void testWierzcholki() {
-
-        long[] times = new long[vSizes.length];
-
-        for (int i = 0; i < vSizes.length; i++) {
-
-            Graf graf = GenerowanieGrafu.generujGraf(vSizes[i], vSizes[i] * 2);
-
-            Rezultat r = Dijkstra.start(graf, 0);
-
-            times[i] = r.getCzas();
-        }
-
-        wykres.setData(vSizes, times, "Czas vs liczba wierzchołków");
-    }
-
-    private void testKrawedzie() {
-
-        long[] times = new long[eSizes.length];
-
-        for (int i = 0; i < eSizes.length; i++) {
-
-            Graf graf = GenerowanieGrafu.generujGraf(100, eSizes[i]);
-
-            Rezultat r = Dijkstra.start(graf, 0);
-
-            times[i] = r.getCzas();
-        }
-
-        wykres.setData(eSizes, times, "Czas vs liczba krawędzi");
+        return path;
     }
 
 

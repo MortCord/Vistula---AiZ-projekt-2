@@ -8,48 +8,86 @@ import java.util.Arrays;
 
 public class FloydWarshall {
 
-    public static Rezultat start(Graf graf, int start){
+    static final int INF = 1_000_000_000;
 
-        int v = graf.getWierzcholki();
-        int niesk = 999999;
+    public static Rezultat start(Graf graf, int start) {
 
-        int[][] odleglosc = new int[v][v];
+        int n = graf.getV();
 
-        for(int i = 0; i < v; i++){
-            Arrays.fill(odleglosc[i], niesk);
-            odleglosc[i][i] = 0;
+        int[][] dist = new int[n][n];
+        int[][] next = new int[n][n];
+
+        for (int i = 0; i < n; i++) {
+
+            Arrays.fill(dist[i], INF);
+            Arrays.fill(next[i], -1);
+
+            dist[i][i] = 0;
+            next[i][i] = i;
         }
 
-        for(int i = 0; i < v; i++ ){
-            for(Krawedz krawedz : graf.getListaSasiedztwa()[i]){
-                odleglosc[i][krawedz.getTo()] = krawedz.getWaga();
+        for (int i = 0; i < n; i++) {
+
+            for (Krawedz k : graf.getLista()[i]) {
+
+                int to = k.getTo();
+
+                dist[i][to] = k.getWaga();
+                next[i][to] = to;
             }
         }
 
-        long czasStartu = System.nanoTime();
+        long t1 = System.nanoTime();
 
-        for(int k = 0; k < v; k++){
-            for(int i = 0; i < v; i++){
-                for(int j = 0; j < v; j++){
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
 
-                    if(odleglosc[i][k] + odleglosc[k][j] < odleglosc[i][j]){
-                        odleglosc[i][j] = odleglosc[i][k] + odleglosc[k][j];
+                    if (dist[i][k] < INF &&
+                            dist[k][j] < INF &&
+                            dist[i][k] + dist[k][j] < dist[i][j]) {
+
+                        dist[i][j] = dist[i][k] + dist[k][j];
+
+                        next[i][j] = next[i][k];
                     }
-
                 }
             }
         }
 
-        long czasStopu = System.nanoTime();
+        long t2 = System.nanoTime();
 
-        int[] rezultat = new int[v];
+        int[] result = new int[n];
+        int[] parent = new int[n];
 
-        for(int i = 0; i < v; i++){
-            rezultat[i] = odleglosc[start][i];
+        Arrays.fill(parent, -1);
+
+        for (int i = 0; i < n; i++) {
+
+            result[i] = dist[start][i];
+
+            if(i != start && next[start][i] != -1) {
+                parent[i] = znajdzPoprzednika(start, i, next);
+            }
         }
 
-        return new Rezultat(rezultat, new int[v], czasStopu - czasStartu);
-
+        return new Rezultat(result, parent, t2 - t1);
     }
 
+    private static int znajdzPoprzednika(int start, int end, int[][] next){
+
+        int current = start;
+        int prev = -1;
+
+        while(current != end){
+
+            prev = current;
+            current = next[current][end];
+
+            if(current == -1)
+                return -1;
+        }
+
+        return prev;
+    }
 }

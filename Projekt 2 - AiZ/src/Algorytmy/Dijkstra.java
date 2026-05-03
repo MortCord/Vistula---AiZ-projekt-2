@@ -9,43 +9,47 @@ import java.util.PriorityQueue;
 
 public class Dijkstra {
 
-    public static Rezultat start(Graf graf, int start){
-        int v = graf.getWierzcholki();
 
-        int[] odleglosc = new int[v];
-        int[] rodzic = new int[v];
+    public static Rezultat start(Graf graf, int start) {
 
-        Arrays.fill(odleglosc, Integer.MAX_VALUE);
-        Arrays.fill(rodzic, -1);
+        int n = graf.getV();
 
-        odleglosc[start] = 0;
+        int[] dist = new int[n];
+        int[] parent = new int[n];
 
-        PriorityQueue<Wezel> queue = new PriorityQueue<>();
-        queue.add(new Wezel(start, 0));
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        Arrays.fill(parent, -1);
 
-        long czasStartu = System.nanoTime();
+        dist[start] = 0;
 
-        while(!queue.isEmpty()){
-            Wezel aktualny = queue.poll();
+        PriorityQueue<Wezel> pq = new PriorityQueue<>();
+        pq.add(new Wezel(start, 0));
 
-            for(Krawedz krawedz : graf.getListaSasiedztwa()[aktualny.wierzcholek]){
+        long t1 = System.nanoTime();
 
-                int nastepny = krawedz.getTo();
-                int nowaOdleglosc = odleglosc[aktualny.wierzcholek] + krawedz.getWaga();
+        while (!pq.isEmpty()) {
 
-                if(nowaOdleglosc < odleglosc[nastepny]){
-                    odleglosc[nastepny] = nowaOdleglosc;
-                    rodzic[nastepny] = aktualny.wierzcholek;
+            Wezel cur = pq.poll();
 
-                    queue.add(new Wezel(nastepny, nowaOdleglosc));
+            if (cur.dist > dist[cur.v])
+                continue;
+
+            for (Krawedz k : graf.getLista()[cur.v]) {
+
+                int next = k.getTo();
+                int nd = dist[cur.v] + k.getWaga();
+
+                if (nd < dist[next]) {
+                    dist[next] = nd;
+                    parent[next] = cur.v;
+                    pq.add(new Wezel(next, nd));
                 }
-
             }
         }
 
-        long czasStopu = System.nanoTime();
+        long t2 = System.nanoTime();
 
-        return new Rezultat(odleglosc, rodzic, czasStopu - czasStartu);
+        return new Rezultat(dist, parent, t2 - t1);
     }
 
 }

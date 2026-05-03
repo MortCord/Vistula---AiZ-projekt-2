@@ -5,15 +5,15 @@ import Grafy.Krawedz;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PanelGrafu extends JPanel {
 
     private Graf graf;
+    private List<Integer> sciezka = new ArrayList<>();
 
-    private List<Integer> sciezka;
-
-    public void setGraf(Graf graf){
+    public void setGraf(Graf graf) {
         this.graf = graf;
         repaint();
     }
@@ -24,111 +24,78 @@ public class PanelGrafu extends JPanel {
     }
 
     @Override
-    protected void paintComponent(Graphics graphics){
-        super.paintComponent(graphics);
+    protected void paintComponent(Graphics g) {
 
-        if(graf == null){
-            return;
+        super.paintComponent(g);
+
+        if (graf == null) return;
+
+        int n = graf.getV();
+
+        Point[] p = new Point[n];
+
+        int cx = getWidth()/2;
+        int cy = getHeight()/2;
+
+        int r = 220;
+
+        for(int i=0;i<n;i++) {
+
+            double ang = 2*Math.PI*i/n;
+
+            int x = cx + (int)(r*Math.cos(ang));
+            int y = cy + (int)(r*Math.sin(ang));
+
+            p[i] = new Point(x,y);
         }
 
-        int wierzcholki = graf.getWierzcholki();
+        Graphics2D g2 = (Graphics2D) g;
 
-        int centerX = getWidth() / 2;
-        int centerY = getHeight() / 2;
+        for(int i=0;i<n;i++) {
 
-        int radius = 180;
+            for(Krawedz k : graf.getLista()[i]) {
 
-        Point[] points = new Point[wierzcholki];
+                int to = k.getTo();
 
-        for(int i = 0; i < wierzcholki; i++){
-            double kat = 2 * Math.PI * i / wierzcholki;
-
-            int x = centerX + (int)(radius * Math.cos(kat));
-            int y = centerY + (int)(radius * Math.sin(kat));
-
-            points[i] = new Point(x, y);
-        }
-
-        for (int i = 0; i < wierzcholki; i++) {
-
-            for (Krawedz krawedz : graf.getListaSasiedztwa()[i]) {
-
-                int to = krawedz.getTo();
-
-                int x1 = points[i].x;
-                int y1 = points[i].y;
-                int x2 = points[to].x;
-                int y2 = points[to].y;
-
-                boolean jestNaSciezce = jestWSciezce(i, to);
-
-                if (jestNaSciezce) {
-                    graphics.setColor(Color.RED);
+                if(isOnPath(i,to)) {
+                    g2.setColor(Color.RED);
+                    g2.setStroke(new BasicStroke(4));
                 } else {
-                    graphics.setColor(Color.GRAY);
+                    g2.setColor(Color.GRAY);
+                    g2.setStroke(new BasicStroke(1));
                 }
 
-                Graphics2D g2 = (Graphics2D) graphics;
-                g2.setStroke(new BasicStroke(jestNaSciezce ? 3 : 1));
+                g2.drawLine(p[i].x,p[i].y,p[to].x,p[to].y);
 
-                g2.drawLine(x1, y1, x2, y2);
+                int sx=(p[i].x+p[to].x)/2;
+                int sy=(p[i].y+p[to].y)/2;
 
-                graphics.setColor(Color.BLACK);
-
-                int srX = (x1 + x2) / 2;
-                int srY = (y1 + y2) / 2;
-
-                graphics.drawString(String.valueOf(krawedz.getWaga()), srX, srY);
+                g2.setColor(Color.BLACK);
+                g2.drawString("" + k.getWaga(), sx, sy);
             }
         }
 
-        for(int i = 0; i < wierzcholki; i++){
-            for(Krawedz krawedz : graf.getListaSasiedztwa()[i]){
+        for(int i=0;i<n;i++) {
 
-                int to = krawedz.getTo();
+            g2.setColor(Color.CYAN);
+            g2.fillOval(p[i].x-18,p[i].y-18,36,36);
 
-                int x1 = points[i].x;
-                int y1 = points[i].y;
+            g2.setColor(Color.BLACK);
+            g2.drawOval(p[i].x-18,p[i].y-18,36,36);
 
-                int x2 = points[to].x;
-                int y2 = points[to].y;
-
-                graphics.drawLine(x1, y1, x2, y2);
-
-                int srX = (x1 + x2) / 2;
-                int srY = (y1 + y2) / 2;
-
-                graphics.drawString(String.valueOf(krawedz.getWaga()), srX, srY);
-            }
-        }
-
-        for(int i = 0; i < wierzcholki; i++){
-
-            graphics.setColor(Color.CYAN);
-            graphics.fillOval(points[i].x - 15, points[i].y - 15, 30, 30);
-
-            graphics.setColor(Color.BLACK);
-            graphics.drawOval(points[i].x - 15, points[i].y - 15, 30, 30);
-
-            graphics.drawString(String.valueOf(i), points[i].x - 5, points[i].y + 5);
-
+            g2.drawString("" + i,p[i].x-4,p[i].y+4);
         }
     }
 
-    private boolean jestWSciezce(int from, int to) {
+    private boolean isOnPath(int a,int b){
 
-        if (sciezka == null) return false;
+        for(int i=0;i<sciezka.size()-1;i++){
 
-        for (int i = 0; i < sciezka.size() - 1; i++) {
-
-            int a = sciezka.get(i);
-            int b = sciezka.get(i + 1);
-
-            if (a == from && b == to) {
+            if(sciezka.get(i)==a && sciezka.get(i+1)==b)
                 return true;
-            }
         }
 
         return false;
     }
+
 }

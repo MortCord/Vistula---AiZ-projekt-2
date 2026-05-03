@@ -5,31 +5,42 @@ import java.util.List;
 
 public class Graf {
 
-    private int wierzcholki;
-    private List<Krawedz>[] listaSasiedztwa;
 
-    public Graf(int wierzcholki){
+    private int v;
+    private boolean skierowany;
 
-        this.wierzcholki = wierzcholki;
+    private List<Krawedz>[] lista;
 
-        listaSasiedztwa = new ArrayList[wierzcholki];
+    public Graf(int v, boolean skierowany) {
+        this.v = v;
+        this.skierowany = skierowany;
 
-        for(int i = 0; i < wierzcholki; i++){
-            listaSasiedztwa[i] = new ArrayList<>();
+        lista = new ArrayList[v];
+
+        for(int i=0;i<v;i++) {
+            lista[i] = new ArrayList<>();
         }
-
     }
 
-    public void dodajKrawedz(int od, int to, int waga){
-        listaSasiedztwa[od].add(new Krawedz(to, waga));
+    public void dodajKrawedz(int from, int to, int waga) {
+
+        lista[from].add(new Krawedz(to, waga));
+
+        if(!skierowany) {
+            lista[to].add(new Krawedz(from, waga));
+        }
     }
 
-    public int getWierzcholki(){
-        return wierzcholki;
+    public int getV() {
+        return v;
     }
 
-    public List<Krawedz>[] getListaSasiedztwa(){
-        return listaSasiedztwa;
+    public List<Krawedz>[] getLista() {
+        return lista;
+    }
+
+    public boolean isSkierowany() {
+        return skierowany;
     }
 
 }
