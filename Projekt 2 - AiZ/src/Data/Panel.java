@@ -37,7 +37,7 @@ public class Panel extends JFrame {
 
     public Panel() {
 
-        setTitle("Najkrótsze ścieżki w grafie - FULL FIX");
+        setTitle("Projekt 2 AiZ - Najkrótsze ścieżki w grafie");
         setSize(1300, 750);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -48,6 +48,8 @@ public class Panel extends JFrame {
         initEvents();
 
         setVisible(true);
+
+        EksportWynikow.zapiszNaglowek();
     }
 
     private void initTop() {
@@ -157,6 +159,8 @@ public class Panel extends JFrame {
 
             Rezultat r = Dijkstra.start(graf, start);
 
+            EksportWynikow.zapiszWynik("Dijkstra", r.getCzas(), graf.getV(), txtE.getText().isEmpty() ? 0 : Integer.parseInt(txtE.getText()));
+
             showTable(r);
 
             Map<String,Long> map = new LinkedHashMap<>();
@@ -168,6 +172,8 @@ public class Panel extends JFrame {
 
             Rezultat r = BellmanFord.start(graf, start);
 
+            EksportWynikow.zapiszWynik("BellmanFord", r.getCzas(), graf.getV(), txtE.getText().isEmpty() ? 0 : Integer.parseInt(txtE.getText()));
+
             showTable(r);
 
             Map<String,Long> map = new LinkedHashMap<>();
@@ -178,6 +184,8 @@ public class Panel extends JFrame {
         } else if (alg.equals("FloydWarshall")) {
 
             Rezultat r = FloydWarshall.start(graf, start);
+
+            EksportWynikow.zapiszWynik("FloydWarshall", r.getCzas(), graf.getV(), txtE.getText().isEmpty() ? 0 : Integer.parseInt(txtE.getText()));
 
             showTable(r);
 
@@ -191,6 +199,10 @@ public class Panel extends JFrame {
             Rezultat d = Dijkstra.start(graf, start);
             Rezultat b = BellmanFord.start(graf, start);
             Rezultat f = FloydWarshall.start(graf, start);
+
+            EksportWynikow.zapiszWynik("Dijkstra", d.getCzas(), graf.getV(), Integer.parseInt(txtE.getText()));
+            EksportWynikow.zapiszWynik("Bellman", b.getCzas(), graf.getV(), Integer.parseInt(txtE.getText()));
+            EksportWynikow.zapiszWynik("Floyd", f.getCzas(), graf.getV(), Integer.parseInt(txtE.getText()));
 
             showTable(d);
 
@@ -263,50 +275,84 @@ public class Panel extends JFrame {
 
     private void testV() {
 
-        try {
+        EksportWynikow.zresetuj();
 
-            int[] arr = {10,50,100,200,500};
+        int[] arr = {10,50,100,200,500};
 
-            Map<String,Long> map = new LinkedHashMap<>();
+        Map<String,Long> wykresData = new LinkedHashMap<>();
 
-            for(int x : arr) {
+        String alg = (String) comboAlg.getSelectedItem();
 
-                Graf g = GenerowanieGrafu.generuj(x,x*2,false);
+        for(int v : arr) {
 
-                Rezultat r = Dijkstra.start(g,0);
+            Graf g = GenerowanieGrafu.generuj(v, v*2, false);
 
-                map.put("V=" + x, r.getCzas());
+            if(alg.equals("Wszystkie")) {
+
+                Rezultat d = Dijkstra.start(g,0);
+                Rezultat b = BellmanFord.start(g,0);
+                Rezultat f = FloydWarshall.start(g,0);
+
+                EksportWynikow.zapiszWynik("Dijkstra", d.getCzas(), v, v*2);
+                EksportWynikow.zapiszWynik("BellmanFord", b.getCzas(), v, v*2);
+                EksportWynikow.zapiszWynik("Floyd", f.getCzas(), v, v*2);
+
+                wykresData.put("Dijkstra V=" + v, d.getCzas());
+                wykresData.put("Bellman V=" + v, b.getCzas());
+                wykresData.put("Floyd V=" + v, f.getCzas());
+
+            } else {
+
+                Rezultat r = runSelectedAlgorithm(g, 0);
+
+                EksportWynikow.zapiszWynik(alg, r.getCzas(), v, v*2);
+
+                wykresData.put(alg + " V=" + v, r.getCzas());
             }
-
-            wykres.setData(map);
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,"Błąd testu");
         }
+
+        wykres.setData(wykresData);
     }
 
     private void testE() {
 
-        try {
+        EksportWynikow.zresetuj();
 
-            int[] arr = {20,50,100,300,500};
+        int[] arr = {20,50,100,300,500};
 
-            Map<String,Long> map = new LinkedHashMap<>();
+        Map<String,Long> wykresData = new LinkedHashMap<>();
 
-            for(int x : arr) {
+        String alg = (String) comboAlg.getSelectedItem();
 
-                Graf g = GenerowanieGrafu.generuj(100,x,false);
+        for(int e : arr) {
 
-                Rezultat r = Dijkstra.start(g,0);
+            Graf g = GenerowanieGrafu.generuj(100, e, false);
 
-                map.put("E=" + x, r.getCzas());
+            if(alg.equals("Wszystkie")) {
+
+                Rezultat d = Dijkstra.start(g,0);
+                Rezultat b = BellmanFord.start(g,0);
+                Rezultat f = FloydWarshall.start(g,0);
+
+                EksportWynikow.zapiszWynik("Dijkstra", d.getCzas(), 100, e);
+                EksportWynikow.zapiszWynik("BellmanFord", b.getCzas(), 100, e);
+                EksportWynikow.zapiszWynik("Floyd", f.getCzas(), 100, e);
+
+                wykresData.put("Dijkstra E=" + e, d.getCzas());
+                wykresData.put("Bellman E=" + e, b.getCzas());
+                wykresData.put("Floyd E=" + e, f.getCzas());
+
+            } else {
+
+                Rezultat r = runSelectedAlgorithm(g, 0);
+
+                EksportWynikow.zapiszWynik(alg, r.getCzas(), 100, e);
+
+                wykresData.put(alg + " E=" + e, r.getCzas());
             }
-
-            wykres.setData(map);
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,"Błąd testu");
         }
+
+        wykres.setData(wykresData);
     }
 
     private java.util.List<Integer> buildPath(int[] parent, int end){
@@ -319,6 +365,24 @@ public class Panel extends JFrame {
         }
 
         return path;
+    }
+
+    private Rezultat runSelectedAlgorithm(Graf g, int start) {
+
+        String alg = (String) comboAlg.getSelectedItem();
+
+        switch (alg) {
+            case "Dijkstra":
+                return Dijkstra.start(g, start);
+
+            case "BellmanFord":
+                return BellmanFord.start(g, start);
+
+            case "FloydWarshall":
+                return FloydWarshall.start(g, start);
+        }
+
+        return null;
     }
 
 
