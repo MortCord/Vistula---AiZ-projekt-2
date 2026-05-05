@@ -41,7 +41,6 @@ public class BellmanFord {
             }
         }
 
-        // negative cycle check
         for (int u = 0; u < n; u++) {
             for (Krawedz k : graf.getLista()[u]) {
 
@@ -51,7 +50,7 @@ public class BellmanFord {
                 if (dist[u] != Integer.MAX_VALUE &&
                         dist[u] + w < dist[v]) {
 
-                    System.out.println("UWAGA: Ujemny cykl!");
+                    System.out.println("Ujemny cykl!");
                 }
             }
         }

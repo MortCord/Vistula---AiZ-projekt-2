@@ -46,9 +46,7 @@ public class Dijkstra {
                 }
             }
         }
-
         long t2 = System.nanoTime();
-
         return new Rezultat(dist, parent, t2 - t1);
     }
 
